@@ -6,7 +6,7 @@ Everytime a transaction is sent in a cryptocurrency, it has to be approved, vali
 
 Transactions should be reversible for a period of time. The 'time' is defined by the actual block number. A minimal refund block number should be assigned to every address and every transaction must have at least the value of it. The minimal refund block must be able to be changed. A debt check should occur, ensuring security for refundable amounts, and preveting "Send Before Refund" attack. All of this must be stored in a central storage array. That eletronic smart contract guarantees one thing: a no intermediaries time-ensured eletronic refund system.
 
-![Send Before Refund Flaw](paper/sbbf4.png)
+> Time is a created thing. To say ‘I don't have time,' is like saying, ‘I don't want to
 
 ## The concept behind
 
@@ -17,6 +17,8 @@ Rose needs to pay the rent of her’s house. The rent must be paid every month o
 - And both the first and the second method have the flaw presented earlier: in case a big demand arise, the Rose transaction will be delayed and can overpass the 24th day limit. That proves the fragility of the actual system.
 
 The key element for solving this problem and many others, such as tokens sent to a wrong address, addresses that had their private keys stolen, without having an intermediary is to have reversible transactions by using smart contract token. The term "time-ensurance", defined by "something happen in the exact time it's supposed to" is obsolete in cryptocurrency. However, by using the following system, the flaw is fixed, since transactions just became unrevertible precisely after a specific block number is reached.
+
+![Send Before Refund Flaw](paper/sbbf4.png)
 
 ## Implementation
 
