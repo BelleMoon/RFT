@@ -6,7 +6,7 @@ Everytime a transaction is sent in a cryptocurrency, it has to be approved, vali
 
 Transactions should be reversible for a period of time. The 'time' is defined by the actual block number. A minimal refund block number should be assigned to every address and every transaction must have at least the value of it. The minimal refund block must be able to be changed. A debt check should occur, ensuring security for refundable amounts, and preveting "Send Before Refund" attack. All of this must be stored in a central storage array. That eletronic smart contract guarantees one thing: a no intermediaries time-ensured eletronic refund system.
 
-![Send Before Refund Flaw](sendbeforerefund.png)
+![Send Before Refund Flaw](paper/ssbf3.png)
 
 ## The concept behind
 
@@ -45,8 +45,8 @@ A test file can be found in RFT.test.js file. This file contains commom flaws in
 
 ## License
 
-This project is licensed under the [MIT](LICENSE.md)
-MIT License - see the [LICENSE.md](LICENSE.md) file for
+This project is licensed under the
+MIT License - see the [LICENSE](LICENSE) file for
 details.
 
 ## Acknowledgments
