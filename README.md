@@ -18,15 +18,6 @@ The RFT protocol introduces a refund mechanism where transactions remain **rever
 
 ![Use Case Diagram](Use%20Case%20Diagram.png)
 
-## A Decentralized Time-Ensured Refund System
-
-### Overview
-The Refundable Token (RFT) is a novel ERC20-compatible smart contract implementation that introduces structured refundability into blockchain transactions. By leveraging minimal refund block constraints and debt-checking mechanisms, the RFT framework ensures that transactions can be reversed within a predefined time window while maintaining security and decentralization.
-
-## Motivation
-
-One of the core limitations of traditional cryptocurrencies is the irreversibility of transactions. This poses risks in cases of accidental transfers, fraud, or time-sensitive payments where delays can lead to financial losses. The RFT protocol addresses this issue by enabling time-constrained, issuer-approved refunds without relying on intermediaries.
-
 ## Key Features
 
 - **Time-Based Refundability:** Transactions remain reversible until a predefined minimal refund block is reached.
