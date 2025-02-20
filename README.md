@@ -3,6 +3,24 @@
 ## A Decentralized Time-Ensured Refund System
 
 ### Overview
+The Refundable Token (RFT) is an ERC20-compatible smart contract implementation that integrates structured refundability into blockchain transactions. This README provides an in-depth technical explanation, including smart contract functionality, implementation, and security mechanisms, with accompanying code demonstrations.
+
+## Motivation
+
+### **Problem Statement**
+One of the fundamental issues in blockchain-based financial transactions is **irreversibility**. Once a transaction is added to the blockchain, it cannot be undone, which leads to various complications such as:
+- **Accidental Transfers**: Users frequently send tokens to incorrect addresses, with no way to recover them.
+- **Fraud and Theft**: If a private key is compromised, attackers can permanently steal funds.
+- **Time-Sensitive Payments**: In traditional finance, scheduled payments ensure that deadlines are met. Blockchain transactions, however, are susceptible to delays due to network congestion, which can lead to penalties for missed payments.
+
+### **Solution: Refundable Transactions with Time Constraints**
+The RFT protocol introduces a refund mechanism where transactions remain **reversible for a predefined time window**. This is achieved through the concept of **Minimal Refund Block (MRB)**, which enforces a structured refundability period without compromising decentr# Refundable Token (RFT)
+
+![Use Case Diagram](Use%20Case%20Diagram.png)
+
+## A Decentralized Time-Ensured Refund System
+
+### Overview
 The Refundable Token (RFT) is a novel ERC20-compatible smart contract implementation that introduces structured refundability into blockchain transactions. By leveraging minimal refund block constraints and debt-checking mechanisms, the RFT framework ensures that transactions can be reversed within a predefined time window while maintaining security and decentralization.
 
 ## Motivation
@@ -40,61 +58,116 @@ Each transaction in the RFT system includes:
 ### Minimal Refund Block Change Process
 
 Users can modify the refundability period using the `changeMinimalRefundBlock(value)` function, which follows a structured time-dependent update process:
+alization.
 
-1. **Initiation:** Starts a countdown equal to the current MRB.
-2. **Countdown Period:** Ensures a gradual transition to prevent exploitation.
-3. **Completion:** The MRB is updated after the countdown expires.
-4. **Cancellation:** Users can abort the MRB change using `cancelMinimalRefundBlockChange()` to prevent unintended modifications.
+Key aspects of the solution include:
+- **Fixed Refund Periods**: Transactions are reversible only until a certain block number is reached.
+- **Debt Checking Mechanism**: Prevents refund exploitation by ensuring that refundable funds cannot be prematurely spent.
+- **Minimal Refund Block Adjustments**: Users can configure their refundability period to fit their needs.
+- **Efficiency & Security**: The system is optimized for O(1) time complexity, ensuring gas efficiency while maintaining high security standards.
 
-### Debt Checking Mechanism
+## Key Features
 
-To counteract the "Send Before Refund" attack, RFT enforces debt checking:
+- **Time-Based Refundability:** Transactions remain reversible until a predefined **minimal refund block** is reached.
+- **Debt Checking Mechanism:** Prevents the "Send Before Refund" attack by ensuring that refundable funds cannot be prematurely transferred.
+- **Customizable MRB:** Users can modify the refundability period for their transactions.
+- **Efficient Gas Usage:** Constant-time (O(1)) operations using Solidity’s mapping and fixed-size array structures.
+- **Secure and Trustless:** Transactions and refunds are governed by smart contracts, eliminating third-party dependence.
 
-- Calculates an address’s total refundable debt.
-- Computes the free balance (total balance - refundable amounts).
-- Ensures transactions do not exceed the free balance.
-- Allows users to specify debt indices to optimize gas costs.
+## Architecture & Implementation
 
-### Refund System
+The RFT smart contract is written in Solidity and deployed on the Ethereum Virtual Machine (EVM). The refund mechanism is enforced through structured smart contract logic, ensuring secure, trackable, and efficient refunds.
 
-Refunds are managed through a structured on-chain storage system:
+### **Transaction Structure**
 
-- **Storage Structure:** Refundable transactions are stored in `_addrTransactionsRefunds` mapping.
-- **Refund Retrieval:** The `getRefund(recipient, id)` function allows transaction issuers to reclaim refundable amounts.
-- **Security Checks:** Ensures only original issuers can process refunds and that requests are within the valid block range.
+Each transaction follows this structured process:
 
-## Setup & Deployment
+- **Recipient:** Destination address
+- **Amount:** Value being transferred
+- **Block Limit:** Defines the refundability period
+- **Debt Indices:** Used for verifying outstanding obligations
 
-### Prerequisites
-To build and test the RFT contract, the following dependencies are required:
+### **Smart Contract Code Demonstration**
 
-- [Node.js](https://nodejs.org/)
-- [Truffle](https://trufflesuite.com/)
-- [Mocha](https://mochajs.org/)
-- [Solidity](https://soliditylang.org/)
-
-### Installation
-```sh
-npm install -g truffle
+#### **Defining the Refund Struct**
+```solidity
+struct Refund {
+    address issuer;
+    uint128 amount;
+    uint128 blockEnd;
+}
 ```
+Each refundable transaction is stored in this struct, where `issuer` is the sender, `amount` is the refund-eligible value, and `blockEnd` defines the expiration block number.
 
-### Running Tests
-Automated tests are implemented using Mocha and the Truffle framework. To execute the test suite:
-```sh
-npm test
+#### **Minimal Refund Block (MRB) Configuration**
+```solidity
+struct MinimalRefundBlock {
+    uint256 value;
+    uint256 lastChange;
+    uint256 desiredChangeValue;
+    bool isChangeRunning;
+}
 ```
-Test cases validate core functionalities, including:
-- Transaction refundability
-- Minimal Refund Block modifications
-- Debt checking enforcement
-- Secure refund processing
+The **Minimal Refund Block** (MRB) ensures that refunds cannot be processed indefinitely. Users can modify this setting with a time delay for security.
 
-## Results & Performance
+### **Core Processes**
 
-The RFT contract was tested in a Ganache environment, confirming:
-- **Successful Refund Execution:** Transactions revert as expected within the defined block limit.
-- **Gas Efficiency:** Key operations maintain O(1) complexity, ensuring minimal computational overhead.
-- **Robust Security:** Debt checking prevents unauthorized fund transfers.
+#### **Transaction Execution & Refund Handling**
+```solidity
+function transfer(
+    address to,
+    uint256 amount,
+    uint256 blockLimit,
+    uint256[] memory debtsIndices
+) public override returns (bool) {
+    address owner = _msgSender();
+    if (blockLimit < _addrMinimalRefundBlock[owner].value) {
+        blockLimit = _addrMinimalRefundBlock[owner].value;
+    }
+    _debtCheck(owner, amount, debtsIndices);
+    _transfer(owner, to, amount);
+    _whenTransactionCompleted(owner, to, amount, blockLimit);
+    return true;
+}
+```
+This function ensures that:
+1. The **Minimal Refund Block** is respected.
+2. Debt checking occurs before allowing transfers.
+3. Refundable transactions are correctly recorded.
+
+#### **Debt Checking Mechanism**
+```solidity
+function _debtCheck(
+    address sender,
+    uint256 amount,
+    uint256[] memory debtsIndices
+) internal virtual {
+    uint256 actualDebt = _addrDebtAmount[sender];
+    uint256 actualBalance = balanceOf(sender);
+    uint256 preliminarFreeBalance = actualBalance - actualDebt;
+    if (amount > preliminarFreeBalance) {
+        uint256 discountedDebt = _clearDebt(sender, debtsIndices);
+        uint256 calculatedDebt = actualDebt - discountedDebt;
+        uint256 calculatedFreeBalance = actualBalance - calculatedDebt;
+        require(amount <= calculatedFreeBalance, "RFT: Not enough free balance.");
+        _addrDebtAmount[sender] = calculatedDebt;
+    }
+}
+```
+This prevents users from transferring funds that are still refundable, ensuring transaction integrity.
+
+#### **Refund Execution**
+```solidity
+function getRefund(
+    address recipient,
+    uint256 id,
+    uint128 refundAmount
+) external override returns (bool) {
+    _getRefund(_msgSender(), recipient, id, refundAmount);
+    return true;
+}
+```
+This function allows users to request refunds within the valid block limit, ensuring that only the original sender can reclaim funds.
 
 ## Authors
 
@@ -109,5 +182,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 For further technical insights, refer to "Refundable_Token.pdf" included in this repository.
 
 ---
-This README provides an in-depth overview of the RFT protocol’s technical implementation, security considerations, and testing framework, ensuring clear documentation for developers and researchers interested in refundable blockchain transactions.
+This README provides a detailed technical guide for developers, covering smart contract structure, implementation, and security measures for the Refundable Token (RFT).
 
