@@ -1,56 +1,113 @@
-# Refundable Token
+# Refundable Token (RFT)
 
-### A no intermediaries time-ensurance eletronic refund system
+## A Decentralized Time-Ensured Refund System
 
-Everytime a transaction is sent in a cryptocurrency, it has to be approved, validated and mined. The time taken to realize this operation is very variable, as observed in many blockchains. The lack of precision in time to a transaction suceeds characterize a flaw on the model. The reason that this is a flaw it’s that real world needs precision.
+### Overview
+The Refundable Token (RFT) is a novel ERC20-compatible smart contract implementation that introduces structured refundability into blockchain transactions. By leveraging minimal refund block constraints and debt-checking mechanisms, the RFT framework ensures that transactions can be reversed within a predefined time window while maintaining security and decentralization.
 
-Transactions should be reversible for a period of time. The 'time' is defined by the actual block number. A minimal refund block number should be assigned to every address and every transaction must have at least the value of it. The minimal refund block must be able to be changed. A debt check should occur, ensuring security for refundable amounts, and preveting "Send Before Refund" attack. All of this must be stored in a central storage array. That eletronic smart contract guarantees one thing: a no intermediaries time-ensured eletronic refund system.
+## Motivation
 
-> Time is a created thing. To say ‘I don't have time,' is like saying, ‘I don't want to'.
+One of the core limitations of traditional cryptocurrencies is the irreversibility of transactions. This poses risks in cases of accidental transfers, fraud, or time-sensitive payments where delays can lead to financial losses. The RFT protocol addresses this issue by enabling time-constrained, issuer-approved refunds without relying on intermediaries.
 
-## The concept behind
+## Key Features
 
-Consider the following case:
+- **Time-Based Refundability:** Transactions remain reversible until a predefined minimal refund block is reached.
+- **Debt Checking Mechanism:** Prevents the "Send Before Refund" attack by ensuring that funds eligible for refunds cannot be prematurely transferred.
+- **Customizable Minimal Refund Block (MRB):** Users can adjust the refundability period for their transactions, allowing for both flexible and irreversible transactions.
+- **Constant-Time (O(1)) Operations:** Efficient refund tracking and debt management using Solidity’s mapping and fixed-size array structures.
+- **Secure and Trustless:** Transactions and refunds are managed through smart contracts, eliminating the need for third-party intermediaries.
 
-Rose needs to pay the rent of her’s house. The rent must be paid every month on the 24th day, and in case of lack of payment, fines will be applied. Rose, by using cryptocurrency, has two alternatives to pay on the right day. 
-- The first one is Rose actively stay on the computer and perform the transaction on the right day, and the second is delegate it to someone else. The first alternative is impracticable, since Rose is not always available. The second needs trust.
-- And both the first and the second method have the flaw presented earlier: in case a big demand arise, the Rose transaction will be delayed and can overpass the 24th day limit. That proves the fragility of the actual system.
+## Architecture & Implementation
 
-The key element for solving this problem and many others, such as tokens sent to a wrong address, addresses that had their private keys stolen, without having an intermediary is to have reversible transactions by using smart contract token. The term "time-ensurance", defined by "something happen in the exact time it's supposed to" is obsolete in cryptocurrency. However, by using the following system, the flaw is fixed, since transactions just became unrevertible precisely after a specific block number is reached.
+The RFT smart contract is implemented in Solidity and deployed on the Ethereum Virtual Machine (EVM) as an ERC20 token. The refund mechanism is enforced through the following core components:
 
-![Send Before Refund Flaw](paper/sbbf4.png)
+### Transaction Structure
 
-## Implementation
+Each transaction in the RFT system includes:
 
-- This solution is a proof of concept smart contract implemented in Solidity language in Ethereum Virtual Machine (EVM) as an ERC20 Token.
+- **Recipient:** Destination address
+- **Amount:** Value being transferred
+- **Block Limit:** Defines the period in which the transaction remains refundable
+- **Debt Indices:** Used for verifying outstanding obligations
 
-- Testing is implemented using Mocha and Truffle suite by using common Javascript. I plan to update it soon to Typescript.
+### Core Processes
+
+1. **Minimal Refund Block Checking:** Ensures that each transaction adheres to the minimum refundability period.
+2. **Debt Checking:** Prevents the use of refundable funds in new transactions.
+3. **Balance Adjustment:** Updates sender and recipient balances accordingly.
+4. **Storage Management:** Records transaction details for future reference.
+
+### Minimal Refund Block Change Process
+
+Users can modify the refundability period using the `changeMinimalRefundBlock(value)` function, which follows a structured time-dependent update process:
+
+1. **Initiation:** Starts a countdown equal to the current MRB.
+2. **Countdown Period:** Ensures a gradual transition to prevent exploitation.
+3. **Completion:** The MRB is updated after the countdown expires.
+4. **Cancellation:** Users can abort the MRB change using `cancelMinimalRefundBlockChange()` to prevent unintended modifications.
+
+### Debt Checking Mechanism
+
+To counteract the "Send Before Refund" attack, RFT enforces debt checking:
+
+- Calculates an address’s total refundable debt.
+- Computes the free balance (total balance - refundable amounts).
+- Ensures transactions do not exceed the free balance.
+- Allows users to specify debt indices to optimize gas costs.
+
+### Refund System
+
+Refunds are managed through a structured on-chain storage system:
+
+- **Storage Structure:** Refundable transactions are stored in `_addrTransactionsRefunds` mapping.
+- **Refund Retrieval:** The `getRefund(recipient, id)` function allows transaction issuers to reclaim refundable amounts.
+- **Security Checks:** Ensures only original issuers can process refunds and that requests are within the valid block range.
+
+## Setup & Deployment
 
 ### Prerequisites
+To build and test the RFT contract, the following dependencies are required:
 
-Requirements for the software and other tools to build and test
-
-- [Truffle](https://archive.trufflesuite.com/)
+- [Node.js](https://nodejs.org/)
+- [Truffle](https://trufflesuite.com/)
 - [Mocha](https://mochajs.org/)
-- [Node](https://nodejs.org/pt)
 - [Solidity](https://soliditylang.org/)
 
-## Running the tests
+### Installation
+```sh
+npm install -g truffle
+```
 
-A test file can be found in RFT.test.js file. This file contains commom flaws in Solidity.
-> npm test
+### Running Tests
+Automated tests are implemented using Mocha and the Truffle framework. To execute the test suite:
+```sh
+npm test
+```
+Test cases validate core functionalities, including:
+- Transaction refundability
+- Minimal Refund Block modifications
+- Debt checking enforcement
+- Secure refund processing
+
+## Results & Performance
+
+The RFT contract was tested in a Ganache environment, confirming:
+- **Successful Refund Execution:** Transactions revert as expected within the defined block limit.
+- **Gas Efficiency:** Key operations maintain O(1) complexity, ensuring minimal computational overhead.
+- **Robust Security:** Debt checking prevents unauthorized fund transfers.
 
 ## Authors
 
-  - **Labelle Moon** - Hugo Cardoso (hugo.card@usp.br) -
-    [LabelleMoon](https://github.com/BelleMoon)
+- **Hugo Cardoso Ferreira de Araújo** - [LabelleMoon](https://github.com/BelleMoon) - [hugo.card@usp.br](mailto:hugo.card@usp.br)
 
 ## License
 
-This project is licensed under the
-MIT License - see the [LICENSE](LICENSE) file for
-details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 
-  - See "Refundable Token.pdf" for more technical insights. 
+For further technical insights, refer to "Refundable_Token.pdf" included in this repository.
+
+---
+This README provides an in-depth overview of the RFT protocol’s technical implementation, security considerations, and testing framework, ensuring clear documentation for developers and researchers interested in refundable blockchain transactions.
+
